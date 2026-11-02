@@ -249,6 +249,14 @@ public struct Reading: Sendable, Equatable {
 
     public var polar: Polar? { day.polar }
 
+    /// Spans from the starting ○ of the Bogenzeit day, 0 to 400 (§3.8);
+    /// nil on a polar day.
+    public var placeInDay: Double? {
+        guard let span else { return nil }
+        if anchor == .noon { return 200 + span }
+        return span >= 0 ? span : 400 + span
+    }
+
     /// Whole spans, floored toward the past (§5.2).
     public var displaySpan: Int? { span.map { Int($0.rounded(.down)) } }
 
@@ -292,6 +300,47 @@ public struct Reading: Sendable, Equatable {
     /// carries the offset form in place of the combined form.
     public var timestamp: String {
         "\(day.day) | \(latitude), \(longitude) | \(combinedForm ?? offsetForm)"
+    }
+}
+
+/// The time between two instants at one place (§3.8), signed: positive when
+/// the second is later.
+public struct SolarDuration: Sendable, Equatable {
+    public let seconds: Double
+    /// Span steps the clock passes; nil when a day between has no sunrise
+    /// or sunset.
+    public let spans: Double?
+
+    public init(from: Date, to: Date, latitude: Double, longitude: Double) {
+        let a = Reading(at: from, latitude: latitude, longitude: longitude)
+        let b = Reading(at: to, latitude: latitude, longitude: longitude)
+        let days = b.day.day.daysSinceEpoch - a.day.day.daysSinceEpoch
+        let first = min(a.day.day, b.day.day)
+        let crossesPolar = (0...abs(days)).contains {
+            SolarDay(first.adding(days: $0), latitude: latitude, longitude: longitude).polar != nil
+        }
+        seconds = to.timeIntervalSince(from)
+        if let pa = a.placeInDay, let pb = b.placeInDay, !crossesPolar {
+            spans = pb - pa + 400 * Double(days)
+        } else {
+            spans = nil
+        }
+    }
+
+    /// Whole spans, floored toward the past (§5.2).
+    public var displaySpans: Int? { spans.map { Int($0.rounded(.down)) } }
+
+    /// Tenths of a kilosecond, floored toward the past (§5.2).
+    public var displayKsSteps: Int { Int((seconds / 100).rounded(.down)) }
+
+    /// `23 spans`, `1 span` or `4.9 ks`, without direction: whole spans, or
+    /// one decimal of ks when the scale is ks or the span count is undefined.
+    public func text(_ scale: Scale) -> String {
+        if scale == .spans, let spans = displaySpans {
+            return abs(spans) == 1 ? "1 span" : "\(abs(spans)) spans"
+        }
+        let steps = abs(displayKsSteps)
+        return "\(steps / 10).\(steps % 10) ks"
     }
 }
 

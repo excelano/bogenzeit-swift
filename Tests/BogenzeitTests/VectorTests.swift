@@ -51,6 +51,32 @@ final class VectorTests: XCTestCase {
         }
     }
 
+    func testEveryDurationPasses() throws {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("vectors/bz_vectors.json")
+        let file = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
+        let durations = file["durations"] as! [[String: Any]]
+        XCTAssertFalse(durations.isEmpty)
+        for v in durations {
+            let name = v["name"] as! String
+            let d = SolarDuration(
+                from: Date(rfc3339: v["from"] as! String)!,
+                to: Date(rfc3339: v["to"] as! String)!,
+                latitude: v["lat"] as! Double,
+                longitude: v["lon"] as! Double)
+            let e = v["expected"] as! [String: Any]
+            XCTAssertEqual(d.seconds, e["seconds"] as! Double, accuracy: 1, "\(name): seconds")
+            XCTAssertEqual(Double(d.displayKsSteps) / 10, e["display_ks"] as! Double, "\(name): display_ks")
+            if let spans = e["spans"] as? Double {
+                XCTAssertEqual(d.spans!, spans, accuracy: 0.001, "\(name): spans")
+                XCTAssertEqual(d.displaySpans, e["display_spans"] as? Int, "\(name): display_spans")
+            } else {
+                XCTAssertNil(d.spans, "\(name): spans across a polar day")
+            }
+        }
+    }
+
     private func instantWithin(_ name: String, _ field: String, _ actual: Date, _ expected: [String: Any]) {
         let expected = Date(rfc3339: expected[field] as! String)!
         XCTAssertEqual(actual.timeIntervalSince(expected), 0, accuracy: 1, "\(name): \(field)")

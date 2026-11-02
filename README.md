@@ -12,7 +12,8 @@ and show a reading.
 `Bogenzeit` is the engine: solar noon, sunrise, sunset and the solar midnights
 for a place and a day, and a `Reading` of any instant on its arc. It also
 formats a reading for display in either scale at one of three precisions,
-floored toward the past as the standard requires. It depends on nothing,
+floored toward the past as the standard requires, and measures a
+`SolarDuration` between two instants in spans and in kiloseconds. It depends on nothing,
 makes no network request and runs on any platform Swift does.
 
 `BogenzeitUI` draws ☉, ○, △ and ▽ from one SwiftUI definition, because no font
