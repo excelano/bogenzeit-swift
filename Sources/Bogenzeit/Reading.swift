@@ -147,6 +147,17 @@ public struct SolarDay: Sendable, Equatable {
     /// Sunset to ending ○.
     public var halfNightEvening: Double? { sunset.map { midnightEnd.timeIntervalSince($0) } }
 
+    public func instant(atPlace place: Double) -> Date? {
+        guard let rise = sunrise, let set = sunset, let halfDay else { return nil }
+        if place < 100 {
+            return midnightStart.addingTimeInterval(rise.timeIntervalSince(midnightStart) * place / 100)
+        }
+        if place <= 300 {
+            return noon.addingTimeInterval(halfDay * (place - 200) / 100)
+        }
+        return midnightEnd.addingTimeInterval(-midnightEnd.timeIntervalSince(set) * (400 - place) / 100)
+    }
+
     /// The night phase at an instant of this day, or nil in daylight.
     public func nightPhase(at t: Date) -> NightPhase? {
         let fromNoon = abs(t.timeIntervalSince(noon))
@@ -255,6 +266,20 @@ public struct Reading: Sendable, Equatable {
         guard let span else { return nil }
         if anchor == .noon { return 200 + span }
         return span >= 0 ? span : 400 + span
+    }
+
+    public func after(spans: Double) -> Date? {
+        guard let start = placeInDay else { return nil }
+        let place = start + spans
+        let days = Int((place / 400).rounded(.down))
+        let target = day.day.adding(days: days)
+        let first = min(day.day, target)
+        let crossesPolar = (0...abs(days)).contains {
+            SolarDay(first.adding(days: $0), latitude: latitude, longitude: longitude).polar != nil
+        }
+        if crossesPolar { return nil }
+        return SolarDay(target, latitude: latitude, longitude: longitude)
+            .instant(atPlace: place - 400 * Double(days))
     }
 
     /// Whole spans, floored toward the past (§5.2).

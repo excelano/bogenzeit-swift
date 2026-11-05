@@ -77,6 +77,48 @@ final class VectorTests: XCTestCase {
         }
     }
 
+    func testEveryInstantPasses() throws {
+        let instants = try vectorFile()["instants"] as! [[String: Any]]
+        XCTAssertFalse(instants.isEmpty)
+        for v in instants {
+            let day = SolarDay(
+                CalendarDay(v["bz_date"] as! String)!,
+                latitude: (v["lat"] as! NSNumber).doubleValue,
+                longitude: (v["lon"] as! NSNumber).doubleValue)
+            let actual = day.instant(atPlace: (v["place"] as! NSNumber).doubleValue)
+            expectedInstant(v["name"] as! String, actual, v["expected"] as! [String: Any])
+        }
+    }
+
+    func testEveryAdvancePasses() throws {
+        let advances = try vectorFile()["advances"] as! [[String: Any]]
+        XCTAssertFalse(advances.isEmpty)
+        for v in advances {
+            let reading = Reading(
+                at: Date(rfc3339: v["from"] as! String)!,
+                latitude: (v["lat"] as! NSNumber).doubleValue,
+                longitude: (v["lon"] as! NSNumber).doubleValue)
+            let actual = reading.after(spans: (v["spans"] as! NSNumber).doubleValue)
+            expectedInstant(v["name"] as! String, actual, v["expected"] as! [String: Any])
+        }
+    }
+
+    private func vectorFile() throws -> [String: Any] {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("vectors/bz_vectors.json")
+        return try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as! [String: Any]
+    }
+
+    private func expectedInstant(_ name: String, _ actual: Date?, _ expected: [String: Any]) {
+        guard expected["utc"] is String else {
+            XCTAssertNil(actual, "\(name): no instant on a polar day")
+            return
+        }
+        guard let actual else { return XCTFail("\(name): no instant") }
+        instantWithin(name, "utc", actual, expected)
+    }
+
     private func instantWithin(_ name: String, _ field: String, _ actual: Date, _ expected: [String: Any]) {
         let expected = Date(rfc3339: expected[field] as! String)!
         XCTAssertEqual(actual.timeIntervalSince(expected), 0, accuracy: 1, "\(name): \(field)")
