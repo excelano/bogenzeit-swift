@@ -45,7 +45,7 @@ final class VectorTests: XCTestCase {
             }
             XCTAssertEqual(r.span!, e["span"] as! Double, accuracy: 0.001, "\(name): span")
             XCTAssertEqual(r.displaySpan, e["display_span"] as? Int, "\(name): display_span")
-            XCTAssertEqual(r.eighth?.name, e["quarter"] as? String, "\(name): eighth")
+            XCTAssertEqual(r.eighth?.name, e["eighth"] as? String, "\(name): eighth")
             XCTAssertEqual(r.combinedForm, e["written"] as? String, "\(name): written")
             XCTAssertEqual(r.spanForm, e["written_span"] as? String, "\(name): written_span")
         }
