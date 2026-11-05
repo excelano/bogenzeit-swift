@@ -36,7 +36,7 @@ public enum SolarAnchor: Sendable, Equatable {
     }
 }
 
-public enum Quarter: String, Sendable, CaseIterable {
+public enum Eighth: String, Sendable, CaseIterable {
     case afterrise = "Afterrise"
     case forenoon = "Forenoon"
     case afternoon = "Afternoon"
@@ -48,15 +48,15 @@ public enum Quarter: String, Sendable, CaseIterable {
 
     public var name: String { rawValue }
 
-    /// The quarter holding a signed span on an arc: start inclusive, end
+    /// The eighth holding a signed span on an arc: start inclusive, end
     /// exclusive, so exactly the anchor is Afternoon or Aftermid (§3.6).
-    public static func of(_ anchor: SolarAnchor, span: Double) -> Quarter {
+    public static func of(_ anchor: SolarAnchor, span: Double) -> Eighth {
         let index = Int(min(3, max(0, ((span + 100) / 50).rounded(.down))))
-        let quarters: [Quarter] = switch anchor {
+        let eighths: [Eighth] = switch anchor {
         case .noon: [.afterrise, .forenoon, .afternoon, .foreset]
         case .midnight: [.afterset, .foremid, .aftermid, .forerise]
         }
-        return quarters[index]
+        return eighths[index]
     }
 }
 
@@ -182,7 +182,7 @@ public func bogenzeitDay(of t: Date, longitude: Double) -> CalendarDay {
 public enum Position: Sendable, Equatable {
     /// `span` is signed spans from the anchor, negative before, positive
     /// after; `spanSeconds` is the length of one span of this half-arc.
-    case onArc(span: Double, spanSeconds: Double, quarter: Quarter)
+    case onArc(span: Double, spanSeconds: Double, eighth: Eighth)
     case polar(Polar)
 }
 
@@ -209,7 +209,7 @@ public struct Reading: Sendable, Equatable {
                 let span = arcSpan(t.timeIntervalSince(day.noon), halfDay)
                 anchor = .noon
                 offset = t.timeIntervalSince(day.noon)
-                position = .onArc(span: span, spanSeconds: halfDay / 100, quarter: .of(.noon, span: span))
+                position = .onArc(span: span, spanSeconds: halfDay / 100, eighth: .of(.noon, span: span))
             } else {
                 let (midnight, halfNight) = t >= set
                     ? (day.midnightEnd, day.midnightEnd.timeIntervalSince(set))
@@ -217,7 +217,7 @@ public struct Reading: Sendable, Equatable {
                 let span = arcSpan(t.timeIntervalSince(midnight), halfNight)
                 anchor = .midnight
                 offset = t.timeIntervalSince(midnight)
-                position = .onArc(span: span, spanSeconds: halfNight / 100, quarter: .of(.midnight, span: span))
+                position = .onArc(span: span, spanSeconds: halfNight / 100, eighth: .of(.midnight, span: span))
             }
         } else {
             let fromNoon = abs(t.timeIntervalSince(day.noon))
@@ -242,7 +242,7 @@ public struct Reading: Sendable, Equatable {
         return nil
     }
 
-    public var quarter: Quarter? {
+    public var eighth: Eighth? {
         if case .onArc(_, _, let q) = position { return q }
         return nil
     }

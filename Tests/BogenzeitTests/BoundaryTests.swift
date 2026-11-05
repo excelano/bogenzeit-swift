@@ -24,12 +24,12 @@ final class BoundaryTests: XCTestCase {
         XCTAssertEqual(before.spanForm, "1 ☉")
         XCTAssertEqual(before.offsetForm, "0.01 ks ☉")
         XCTAssertEqual(before.combinedForm, "1 [0.01 ks] ☉")
-        XCTAssertEqual(before.quarter, .forenoon)
+        XCTAssertEqual(before.eighth, .forenoon)
         let at = houston(noon)
         XCTAssertEqual(at.spanForm, "☉")
         XCTAssertEqual(at.offsetForm, "☉")
         XCTAssertEqual(at.combinedForm, "☉")
-        XCTAssertEqual(at.quarter, .afternoon)
+        XCTAssertEqual(at.eighth, .afternoon)
         let after = houston(noon.addingTimeInterval(150))
         XCTAssertEqual(after.spanForm, "☉")
         XCTAssertEqual(after.combinedForm, "☉ 0 [0.15 ks]")
@@ -39,11 +39,11 @@ final class BoundaryTests: XCTestCase {
         let sunset = houstonDay.sunset!
         let before = houston(sunset.addingTimeInterval(-0.001))
         XCTAssertEqual(before.spanForm, "☉ 99")
-        XCTAssertEqual(before.quarter, .foreset)
+        XCTAssertEqual(before.eighth, .foreset)
         let at = houston(sunset)
         XCTAssertEqual(at.spanForm, "▽")
         XCTAssertEqual(at.combinedForm, "100 [23.37 ks] ○")
-        XCTAssertEqual(at.quarter, .afterset)
+        XCTAssertEqual(at.eighth, .afterset)
         XCTAssertEqual(at.day.day, before.day.day)
     }
 
@@ -51,22 +51,22 @@ final class BoundaryTests: XCTestCase {
         let sunrise = houstonDay.sunrise!
         let before = houston(sunrise.addingTimeInterval(-0.001))
         XCTAssertEqual(before.spanForm, "○ 99")
-        XCTAssertEqual(before.quarter, .forerise)
+        XCTAssertEqual(before.eighth, .forerise)
         let at = houston(sunrise)
         XCTAssertEqual(at.spanForm, "△")
         XCTAssertEqual(at.combinedForm, "100 [19.84 ks] ☉")
-        XCTAssertEqual(at.quarter, .afterrise)
+        XCTAssertEqual(at.eighth, .afterrise)
     }
 
-    func testQuarterBoundaryBelongsToTheQuarterItStarts() {
+    func testEighthBoundaryBelongsToTheEighthItStarts() {
         let day = houstonDay
         let fifty = day.noon.addingTimeInterval(-day.halfDay! / 2)
         let justAfter = houston(fifty.addingTimeInterval(0.001))
         XCTAssertEqual(justAfter.spanForm, "50 ☉")
-        XCTAssertEqual(justAfter.quarter, .forenoon)
+        XCTAssertEqual(justAfter.eighth, .forenoon)
         let justBefore = houston(fifty.addingTimeInterval(-0.001))
         XCTAssertEqual(justBefore.spanForm, "51 ☉")
-        XCTAssertEqual(justBefore.quarter, .afterrise)
+        XCTAssertEqual(justBefore.eighth, .afterrise)
     }
 
     func testKilosecondReadoutStepsEveryTenSeconds() {
@@ -86,7 +86,7 @@ final class BoundaryTests: XCTestCase {
         let first = houston(day.midnightEnd)
         XCTAssertEqual(first.day.day.description, "2026-11-02")
         XCTAssertEqual(first.spanForm, "○")
-        XCTAssertEqual(first.quarter, .aftermid)
+        XCTAssertEqual(first.eighth, .aftermid)
         XCTAssertEqual(first.day.midnightStart, day.midnightEnd)
     }
 

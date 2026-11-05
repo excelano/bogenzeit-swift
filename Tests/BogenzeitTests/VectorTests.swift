@@ -34,7 +34,7 @@ final class VectorTests: XCTestCase {
             if let polar = e["polar"] as? String {
                 XCTAssertEqual(r.polar?.name, polar, "\(name): polar")
                 XCTAssertNil(r.span, "\(name): polar has no span")
-                XCTAssertNil(r.quarter, "\(name): polar has no quarter")
+                XCTAssertNil(r.eighth, "\(name): polar has no eighth")
                 continue
             }
             instantWithin(name, "sunrise_utc", day.sunrise!, e)
@@ -45,7 +45,7 @@ final class VectorTests: XCTestCase {
             }
             XCTAssertEqual(r.span!, e["span"] as! Double, accuracy: 0.001, "\(name): span")
             XCTAssertEqual(r.displaySpan, e["display_span"] as? Int, "\(name): display_span")
-            XCTAssertEqual(r.quarter?.name, e["quarter"] as? String, "\(name): quarter")
+            XCTAssertEqual(r.eighth?.name, e["quarter"] as? String, "\(name): eighth")
             XCTAssertEqual(r.combinedForm, e["written"] as? String, "\(name): written")
             XCTAssertEqual(r.spanForm, e["written_span"] as? String, "\(name): written_span")
         }
